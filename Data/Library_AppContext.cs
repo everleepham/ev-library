@@ -13,6 +13,7 @@ public class Library_AppContext : IdentityDbContext<IdentityUser>
     }
 
     public DbSet<Authors> Authors { get; set; }
+    public DbSet<Books> Books { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
