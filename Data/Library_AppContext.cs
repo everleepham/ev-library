@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Identity;
-using Library.Controllers;
+using Library.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 

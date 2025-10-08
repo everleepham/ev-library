@@ -1,8 +1,6 @@
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Library.Data;
+using Library.Models;
+using Library.Services;
 
 namespace Library.Controllers
 {
@@ -10,76 +8,39 @@ namespace Library.Controllers
     [ApiController]
     public class BooksController : ControllerBase
     {
-        private readonly string _connectionString;
+        private readonly BooksService _booksService;
 
         public BooksController(IConfiguration configuration)
         {
-            _connectionString = configuration.GetConnectionString("Library_AppContextConnection") 
-                                ?? throw new InvalidOperationException("Connection string not found");
+            var connectionString = configuration.GetConnectionString("Library_AppContextConnection") 
+                                   ?? throw new InvalidOperationException("Connection string not found");
+            _booksService = new BooksService(connectionString);
         }
 
         [HttpGet]
         public async Task<IActionResult> Get()
         {
-            var options = new DbContextOptionsBuilder<Library_AppContext>()
-                .UseSqlServer(_connectionString)
-                .Options;
-
-            using var context = new Library_AppContext(options);
-            
-            var books = await context.Books.ToListAsync();
+            var books = await _booksService.GetAllAsync();
             return Ok(books);
         }
-        
-        [HttpGet("{id}")] 
+
+        [HttpGet("{id}")]
         public async Task<IActionResult> Get(int id)
         {
-            var options = new DbContextOptionsBuilder<Library_AppContext>()
-                .UseSqlServer(_connectionString)
-                .Options;
-
-            using var context = new Library_AppContext(options);
-            var query = context.Books.Where(b => b.Id == id);
-            Console.WriteLine(query.ToQueryString());
-            
-            var book = await query.FirstOrDefaultAsync();
+            var book = await _booksService.GetByIdAsync(id);
+            if (book == null)
+                return NotFound($"Book with id {id} not found.");
             return Ok(book);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Post(Books book)
+        public async Task<IActionResult> Post([FromBody] Books book)
         {
-            var options = new DbContextOptionsBuilder<Library_AppContext>()
-                .UseSqlServer(_connectionString)
-                .Options;
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
-            using var context = new Library_AppContext(options);
-            
-            var query = context.Books.Where(b => b.Id == book.Id);
-            Console.WriteLine(query.ToQueryString());
-
-            context.Books.Add(book);
-            await context.SaveChangesAsync();
-
-            return Ok(book);
+            var created = await _booksService.AddAsync(book);
+            return CreatedAtAction(nameof(Get), new { id = created.Id }, created);
         }
-    }
-
-    public class Books
-    {
-        [Key] 
-        public int Id { get; set; }
-        
-        [Required]
-        [StringLength(20, MinimumLength = 3)]
-        public string Name { get; set; }
-
-        [Required]
-        [Range(0, 100)]
-        public int Pages { get; set; }
-
-        [Required]
-        [Column("author_id")]
-        public int AuthorId { get; set; }
     }
 }

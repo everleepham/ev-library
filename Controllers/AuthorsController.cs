@@ -1,8 +1,6 @@
-using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
-using System.Text.Json.Serialization;
-using Microsoft.EntityFrameworkCore;
-using Library.Data;
+using Library.Services;
+using Library.Models;
 
 namespace Library.Controllers
 {
@@ -10,84 +8,40 @@ namespace Library.Controllers
     [ApiController]
     public class AuthorsController : ControllerBase
     {
-        private readonly string _connectionString;
+        private readonly AuthorService _service;
 
         public AuthorsController(IConfiguration configuration)
         {
-            _connectionString = configuration.GetConnectionString("Library_AppContextConnection") 
-                                ?? throw new InvalidOperationException("Connection string not found");
+            var connectionString = configuration.GetConnectionString("Library_AppContextConnection") 
+                                   ?? throw new InvalidOperationException("Connection string not found");
+            
+            _service = new AuthorService(connectionString);
         }
 
         [HttpGet]
-        public async Task<IActionResult> Get()
+        public async Task<IActionResult> GetAll()
         {
-            var options = new DbContextOptionsBuilder<Library_AppContext>()
-                .UseSqlServer(_connectionString)
-                .Options;
-
-            using var context = new Library_AppContext(options);
-            
-            var authors = await context.Authors.ToListAsync();
+            var authors = await _service.GetAllAsync();
             return Ok(authors);
         }
-        
-        [HttpGet]
-        public async Task<IActionResult> Get(int id)
-        {
-            var options = new DbContextOptionsBuilder<Library_AppContext>()
-                .UseSqlServer(_connectionString)
-                .Options;
 
-            using var context = new Library_AppContext(options);
-            var query = context.Authors.Where(a => a.Id == id);
-            Console.WriteLine(query.ToQueryString());
-            
-            var author = await query.FirstOrDefaultAsync();
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(int id)
+        {
+            var author = await _service.GetByIdAsync(id);
+            if (author == null)
+                return NotFound($"Author with ID {id} not found.");
             return Ok(author);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Post(Authors author)
+        public async Task<IActionResult> Create([FromBody] Authors author)
         {
-            var options = new DbContextOptionsBuilder<Library_AppContext>()
-                .UseSqlServer(_connectionString)
-                .Options;
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
-            using var context = new Library_AppContext(options);
-            
-            var query = context.Authors.Where(a => a.Id == author.Id);
-            Console.WriteLine(query.ToQueryString());
-
-            context.Authors.Add(author);
-            await context.SaveChangesAsync();
-
-            return Ok(author);
+            var created = await _service.AddAsync(author);
+            return Ok(created);
         }
-    }
-
-    public class Authors
-    {
-        [Key] 
-        public int Id { get; set; }
-        
-        [Required]
-        [StringLength(90, MinimumLength = 5)]
-        public string? Email { get; set; }
-
-        [Required]
-        [StringLength(20, MinimumLength = 3)]
-        public string? FName { get; set; }
-        
-        [Required]
-        [StringLength(20, MinimumLength = 3)]
-        public string? LName { get; set; }
-
-        [Required]
-        [Range(0, 100)]
-        public int? Age { get; set; }
-
-        [Required]
-        [StringLength(90, MinimumLength = 3)]
-        public string? Address { get; set; }
     }
 }
