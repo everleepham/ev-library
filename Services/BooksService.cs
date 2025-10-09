@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Library.Data;
 using Library.Models;
 using Microsoft.EntityFrameworkCore;
+using Library.DTO;
 
 namespace Library.Services
 {
@@ -25,21 +26,23 @@ namespace Library.Services
             return new Library_AppContext(options);
         }
 
-        public async Task<List<Books>> GetAllAsync()
+        public async Task<List<BooksDTO>> GetAllAsync()
         {
             using var context = CreateContext();
-            return await context.Books.ToListAsync();
+            var books = await context.Books.ToListAsync();
+            return books.Select(toDTO).ToList();
         }
 
-        public async Task<Books?> GetByIdAsync(int id)
+        public async Task<BooksDTO?> GetByIdAsync(int id)
         {
             using var context = CreateContext();
             var query = context.Books.Where(b => b.Id == id);
             Console.WriteLine(query.ToQueryString());
-            return await query.FirstOrDefaultAsync();
+            var book = await query.FirstOrDefaultAsync();
+            return book == null ? null : toDTO(book);
         }
 
-        public async Task<Books> AddAsync(Books book)
+        public async Task<BooksDTO> AddAsync(Books book)
         {
             using var context = CreateContext();
 
@@ -49,7 +52,16 @@ namespace Library.Services
             context.Books.Add(book);
             await context.SaveChangesAsync();
 
-            return book;
+            return toDTO(book);
+        }
+
+        private BooksDTO toDTO(Books book)
+        {
+            return new BooksDTO()
+            {
+                Name = book.Name,
+                Pages = book.Pages,
+            };
         }
     }
 }

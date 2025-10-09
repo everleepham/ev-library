@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Library.Models;
 using Library.Services;
+using Library.DTO;
 
 namespace Library.Controllers
 {
@@ -40,7 +41,7 @@ namespace Library.Controllers
                 return BadRequest(ModelState);
 
             var created = await _booksService.AddAsync(book);
-            return CreatedAtAction(nameof(Get), new { id = created.Id }, created);
+            return Ok(created);
         }
     }
 }
