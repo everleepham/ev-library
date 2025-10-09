@@ -11,11 +11,9 @@ namespace Library.Controllers
     {
         private readonly BooksService _booksService;
 
-        public BooksController(IConfiguration configuration)
+        public BooksController(BooksService booksService)
         {
-            var connectionString = configuration.GetConnectionString("Library_AppContextConnection") 
-                                   ?? throw new InvalidOperationException("Connection string not found");
-            _booksService = new BooksService(connectionString);
+            _booksService = booksService;
         }
 
         [HttpGet]

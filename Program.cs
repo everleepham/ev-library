@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Library.Data;
+using Library.Services;
 
 namespace Library
 {
@@ -15,6 +16,11 @@ namespace Library
             builder.Services.AddDbContext<Library_AppContext>(options => options.UseSqlServer(connectionString));
 
             builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true).AddEntityFrameworkStores<Library_AppContext>();
+            
+            
+            builder.Services.AddScoped<BooksService>();
+            builder.Services.AddScoped<AuthorService>();
+
 
             // Add services to the container.
 

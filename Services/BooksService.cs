@@ -13,10 +13,10 @@ namespace Library.Services
     {
         private readonly string _connectionString;
 
-        public BooksService(string connectionString)
+        public BooksService(IConfiguration configuration)
         {
-            _connectionString = connectionString ?? throw new InvalidOperationException("Connection string not found");
-        }
+            _connectionString = configuration.GetConnectionString("Library_AppContextConnection") 
+                                ?? throw new InvalidOperationException("Connection string not found");        }
 
         private Library_AppContext CreateContext()
         {

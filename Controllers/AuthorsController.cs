@@ -10,12 +10,9 @@ namespace Library.Controllers
     {
         private readonly AuthorService _service;
 
-        public AuthorsController(IConfiguration configuration)
+        public AuthorsController(AuthorService authorsService)
         {
-            var connectionString = configuration.GetConnectionString("Library_AppContextConnection") 
-                                   ?? throw new InvalidOperationException("Connection string not found");
-            
-            _service = new AuthorService(connectionString);
+            _service = authorsService;
         }
 
         [HttpGet]
