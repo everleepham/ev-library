@@ -48,9 +48,15 @@ namespace Library.Services
         public async Task<AuthorsDTO> AddAsync(Authors author)
         {
             using var context = CreateContext();
-
+            
+            if (author == null)
+            {
+                throw new InvalidAuthorInputException("Author not found");
+            }
+            
             var query = context.Authors.Where(a => a.Id == author.Id);
             Console.WriteLine(query.ToQueryString());
+            
 
             context.Authors.Add(author);
             await context.SaveChangesAsync();

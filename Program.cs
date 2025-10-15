@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Library.Data;
+using Library.Middleware;
 using Library.Services;
 
 namespace Library
@@ -17,6 +18,7 @@ namespace Library
 
             builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true).AddEntityFrameworkStores<Library_AppContext>();
             
+            // DI
             builder.Services.AddScoped<BooksService>();
             builder.Services.AddScoped<AuthorService>();
             
@@ -39,7 +41,12 @@ namespace Library
             app.UseHttpsRedirection();
 
             app.UseAuthorization();
+            
+            // middleware
+            app.UseMiddleware<ErrorHandlingMiddleware>();
+            app.UseMiddleware<LoggingMiddleware>();
 
+            
             app.MapControllers();
 
             app.Run();
