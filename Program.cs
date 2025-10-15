@@ -17,11 +17,9 @@ namespace Library
 
             builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true).AddEntityFrameworkStores<Library_AppContext>();
             
-            
             builder.Services.AddScoped<BooksService>();
             builder.Services.AddScoped<AuthorService>();
-
-
+            
             // Add services to the container.
 
             builder.Services.AddControllers();
@@ -37,25 +35,10 @@ namespace Library
             {
                 app.MapOpenApi();
             }
-            
-            app.MapGet("/testdb", async (Library_AppContext db) =>
-            {
-                try
-                {
-                    bool canConnect = await db.Database.CanConnectAsync();
-                    return canConnect ? Results.Ok("Connected to database!") : Results.Problem("Cannot connect to database.");
-                }
-                catch (Exception ex)
-                {
-                    return Results.Problem(ex.Message);
-                }
-            });
-
 
             app.UseHttpsRedirection();
 
             app.UseAuthorization();
-
 
             app.MapControllers();
 

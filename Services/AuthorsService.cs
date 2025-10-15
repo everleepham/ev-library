@@ -1,11 +1,9 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Library.Data;
 using Library.Models;
 using Microsoft.EntityFrameworkCore;
 using Library.DTO;
+using Library.Exception;
 
 
 namespace Library.Services
@@ -17,7 +15,7 @@ namespace Library.Services
         public AuthorService(IConfiguration configuration)
         {
             _connectionString = configuration.GetConnectionString("Library_AppContextConnection") 
-                                   ?? throw new InvalidOperationException("Connection string not found");
+                                   ?? throw new DbConnectionException("Connection string not found");
         }
 
         private Library_AppContext CreateContext()
@@ -32,7 +30,9 @@ namespace Library.Services
         {
             using var context = CreateContext();
             var authors = await context.Authors.ToListAsync();
-            return authors.Select(toDTO).ToList();
+            return (authors == null || authors.Count == 0)
+                ? throw new ResourceNotFoundException("No authors found")
+                : authors.Select(toDTO).ToList();
         }
 
         public async Task<AuthorsDTO?> GetByIdAsync(int id)
@@ -41,7 +41,8 @@ namespace Library.Services
             var query = context.Authors.Where(a => a.Id == id);
             Console.WriteLine(query.ToQueryString());
             var author = await query.FirstOrDefaultAsync();
-            return author == null ? null : toDTO(author);
+            return author == null ? throw new ResourceNotFoundException("Author not found") 
+                : toDTO(author);
         }
 
         public async Task<AuthorsDTO> AddAsync(Authors author)

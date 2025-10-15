@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Library.Data;
 using Library.Models;
+using Library.Exception;
 using Microsoft.EntityFrameworkCore;
 using Library.DTO;
 
@@ -16,7 +17,7 @@ namespace Library.Services
         public BooksService(IConfiguration configuration)
         {
             _connectionString = configuration.GetConnectionString("Library_AppContextConnection") 
-                                ?? throw new InvalidOperationException("Connection string not found");        }
+                                ?? throw new DbConnectionException("Connection string not found");        }
 
         private Library_AppContext CreateContext()
         {
@@ -30,8 +31,9 @@ namespace Library.Services
         {
             using var context = CreateContext();
             var books = await context.Books.ToListAsync();
-            return books.Select(toDTO).ToList();
-        }
+            return (books == null || books.Count == 0)
+                ? throw new ResourceNotFoundException("No books found")
+                : books.Select(toDTO).ToList();        }
 
         public async Task<BooksDTO?> GetByIdAsync(int id)
         {
@@ -39,7 +41,7 @@ namespace Library.Services
             var query = context.Books.Where(b => b.Id == id);
             Console.WriteLine(query.ToQueryString());
             var book = await query.FirstOrDefaultAsync();
-            return book == null ? null : toDTO(book);
+            return book == null ? throw new ResourceNotFoundException("Book not found") : toDTO(book);
         }
 
         public async Task<BooksDTO> AddAsync(Books book)
