@@ -21,6 +21,8 @@ namespace Library
             // DI
             builder.Services.AddScoped<BooksService>();
             builder.Services.AddScoped<AuthorService>();
+            builder.Services.AddScoped<UsersService>();
+            builder.Services.AddScoped<BorrowingsService>();
             
             // Add services to the container.
 
