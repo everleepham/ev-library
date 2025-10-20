@@ -14,6 +14,8 @@ public class Library_AppContext : IdentityDbContext<IdentityUser>
 
     public DbSet<Authors> Authors { get; set; }
     public DbSet<Books> Books { get; set; }
+    public DbSet<Users> Users { get; set; }
+    public DbSet<Borrowings> Borrowings { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

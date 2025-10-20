@@ -2,27 +2,36 @@ using Microsoft.AspNetCore.Http;
 using System;
 using System.Threading.Tasks;
 
-namespace Library.Middleware;
-public class ErrorHandlingMiddleware
+namespace Library.Middleware
 {
-    private readonly RequestDelegate _next;
-
-    public ErrorHandlingMiddleware(RequestDelegate next)
+    public class ErrorHandlingMiddleware
     {
-        _next = next;
-    }
+        private readonly RequestDelegate _next;
 
-    public async Task InvokeAsync(HttpContext context)
-    {
-        try
+        public ErrorHandlingMiddleware(RequestDelegate next)
         {
-            await _next(context);
+            _next = next;
         }
-        catch (System.Exception ex)
+
+        public async Task InvokeAsync(HttpContext context)
         {
-            Console.WriteLine($"Error: {ex.Message}");
-            context.Response.StatusCode = 500;
-            await context.Response.WriteAsync("Internal server error");
+            try
+            {
+                await _next(context);
+            }
+            catch (System.Exception ex)
+            {
+                Console.WriteLine($"Exception: {ex.Message}");
+                if (ex.InnerException != null)
+                    Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
+
+                context.Response.StatusCode = 500;
+                
+                await context.Response.WriteAsync(
+                    $"Internal server error. {ex.Message}" +
+                    (ex.InnerException != null ? $" Inner: {ex.InnerException.Message}" : "")
+                );
+            }
         }
     }
 }
