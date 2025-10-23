@@ -78,6 +78,7 @@ namespace Library.Services
             return toReadDto(borrowing);
         }
 
+        // update return date
         public async Task<BorrowingReadDto> UpdateReturnedDateAsync(int id, BorrowingUpdateDto updateDto)
         {
             using var context = CreateContext();
@@ -96,7 +97,6 @@ namespace Library.Services
         {
             return new BorrowingReadDto
             {
-                Id = borrowing.Id,
                 BookId = borrowing.BookId,
                 UserId = borrowing.UserId,
                 BorrowedDate = borrowing.BorrowedDate,
