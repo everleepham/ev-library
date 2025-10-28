@@ -7,24 +7,18 @@ public class Authors
 {
     [Key] 
     public int Id { get; set; }
-        
-    [Required]
-    [Email]
-    public string Email { get; set; }
 
     [Required]
     [Name]
-    public string FName { get; set; }
-        
-    [Required]
-    [Name]
-    public string LName { get; set; }
-
-    [Required]
-    [Age]
-    public int Age { get; set; }
+    public string Name { get; set; }
+    
+    [StringLength(200, MinimumLength = 0)]
+    public string? Bio { get; set; }
+    
+    [Year]
+    public int BirthYear { get; set; }
 
     [Required]
     [StringLength(20, MinimumLength = 3)]
-    public string? Address { get; set; }
+    public string? Country { get; set; }
 }
