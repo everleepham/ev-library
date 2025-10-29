@@ -19,6 +19,5 @@ public class Authors
     public int BirthYear { get; set; }
 
     [Required]
-    [StringLength(20, MinimumLength = 3)]
     public string? Country { get; set; }
 }
