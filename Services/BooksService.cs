@@ -30,29 +30,53 @@ namespace Library.Services
         public async Task<List<BooksDTO>> GetAllAsync()
         {
             using var context = CreateContext();
-            var books = await context.Books.ToListAsync();
-            return (books == null || books.Count == 0)
-                ? throw new ResourceNotFoundException("No books found")
-                : books.Select(toDTO).ToList();        }
+
+            var books = await context.Books
+                .Include(b => b.Author)
+                
+                .ToListAsync();
+
+            if (books == null || books.Count == 0)
+                throw new ResourceNotFoundException("No books found");
+
+            return books.Select(toDTO).ToList();
+        }
 
         public async Task<BooksDTO?> GetByIdAsync(int id)
         {
             using var context = CreateContext();
-            var query = context.Books.Where(b => b.Id == id);
-            Console.WriteLine(query.ToQueryString());
-            var book = await query.FirstOrDefaultAsync();
-            return book == null ? throw new ResourceNotFoundException("Book not found") : toDTO(book);
+
+            var book = await context.Books
+                .Include(b => b.Author) 
+                .FirstOrDefaultAsync(b => b.Id == id);
+
+            if (book == null)
+                throw new ResourceNotFoundException("Book not found");
+
+            return toDTO(book);
         }
+
 
         public async Task<BooksDTO> AddAsync(Books book)
         {
             using var context = CreateContext();
 
-            var query = context.Books.Where(b => b.Id == book.Id);
-            Console.WriteLine(query.ToQueryString());
+            // check if author exits
+            var author = await context.Authors.FirstOrDefaultAsync(a => a.Id == book.AuthorId);
+            if (author == null)
+            {
+                throw new ResourceNotFoundException(
+                    $"Author with Id {book.AuthorId} not found. Please create the author first."
+                );
+            }
+            
+            book.Author = author;
 
+            // add book
             context.Books.Add(book);
             await context.SaveChangesAsync();
+
+            await context.Entry(book).Reference(b => b.Author).LoadAsync();
 
             return toDTO(book);
         }
@@ -61,8 +85,13 @@ namespace Library.Services
         {
             return new BooksDTO()
             {
-                Name = book.Name,
+                Title = book.Title,
+                ISBN = book.ISBN,
+                PublishedYear = book.PublishedYear,
+                Description = book.Description,
                 Pages = book.Pages,
+                CoverUrl = book.CoverUrl,
+                AuthorName = book.Author.Name
             };
         }
     }

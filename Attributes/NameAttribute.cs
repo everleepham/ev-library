@@ -18,7 +18,7 @@ public class NameAttribute : ValidationAttribute
             return new ValidationResult("Name should not be empty");
         }
 
-        if (name.Length >= 2 && name.Length <= 30)
+        if (name.Length >= 2 && name.Length <= 100)
         {
             return ValidationResult.Success!;
         }

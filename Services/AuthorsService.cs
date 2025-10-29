@@ -67,9 +67,10 @@ namespace Library.Services
         {
             return new AuthorsDTO
             {
-                Email = author.Email,
-                FName = author.FName,
-                LName = author.LName,
+                Name = author.Name,
+                Bio = author.Bio,
+                BirthYear = author.BirthYear,
+                Country = author.Country,
             };
         }
     }

@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using Library.Attributes;
 
 namespace Library.Models;
@@ -11,13 +10,28 @@ public class Books
         
     [Required]
     [Name]
-    public string Name { get; set; }
+    public string Title { get; set; }
+    
+    [Required]
+    public string ISBN { get; set; }
+    
+    [Required]
+    [Year]
+    public int PublishedYear { get; set; }
+    
+    [StringLength(200, MinimumLength = 0)]
+    public string? Description { get; set; }
 
     [Required]
     [BookNum]
     public int Pages { get; set; }
 
     [Required]
-    [Column("author_id")]
     public int AuthorId { get; set; }
+    
+    [Required]
+    public string CoverUrl { get; set; }
+    
+    public Authors? Author { get; set; }
+
 }
