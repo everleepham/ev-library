@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Library.Data;
 using Library.Middleware;
@@ -12,45 +11,62 @@ namespace Library
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
-            var connectionString = builder.Configuration.GetConnectionString("Library_AppContextConnection") ?? throw new InvalidOperationException("Connection string 'Library_AppContextConnection' not found.");;
 
-            builder.Services.AddDbContext<Library_AppContext>(options => options.UseSqlServer(connectionString));
+            // Connection string
+            var connectionString = builder.Configuration
+                .GetConnectionString("Library_AppContextConnection")
+                ?? throw new InvalidOperationException("Connection string 'Library_AppContextConnection' not found.");
 
-            builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true).AddEntityFrameworkStores<Library_AppContext>();
-            
-            // DI
+            // DbContext
+            builder.Services.AddDbContext<Library_AppContext>(options =>
+                options.UseSqlServer(connectionString));
+
+            // Identity
+            builder.Services.AddDefaultIdentity<IdentityUser>(options =>
+                options.SignIn.RequireConfirmedAccount = true)
+                .AddEntityFrameworkStores<Library_AppContext>();
+
+            // DI services
             builder.Services.AddScoped<BooksService>();
             builder.Services.AddScoped<AuthorService>();
             builder.Services.AddScoped<UsersService>();
             builder.Services.AddScoped<BorrowingsService>();
-            
-            // Add services to the container.
 
+            // Controllers
             builder.Services.AddControllers();
-            // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-            builder.Services.AddOpenApi();
-
             builder.Services.AddEndpointsApiExplorer();
-            //builder.Services.AddSwaggerGen();
+            builder.Services.AddOpenApi(); // Swagger / OpenAPI
+
+            // ⚡ CORS (must be before builder.Build())
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAll", policy =>
+                {
+                    policy.AllowAnyOrigin()
+                          .AllowAnyMethod()
+                          .AllowAnyHeader();
+                });
+            });
+
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
+            // Swagger/OpenAPI
             if (app.Environment.IsDevelopment())
             {
                 app.MapOpenApi();
             }
 
-            app.UseHttpsRedirection();
-
+            // Middleware pipeline
+            app.UseCors("AllowAll"); // CORS must be before UseAuthorization
             app.UseAuthorization();
-            
-            // middleware
+
             app.UseMiddleware<ErrorHandlingMiddleware>();
             app.UseMiddleware<LoggingMiddleware>();
 
-            
+            // Map controllers
             app.MapControllers();
 
+            // Run app
             app.Run();
         }
     }
