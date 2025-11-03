@@ -16,7 +16,6 @@ public class Books
     public string ISBN { get; set; }
     
     [Required]
-    [Year]
     public int PublishedYear { get; set; }
     
     [StringLength(200, MinimumLength = 0)]

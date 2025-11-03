@@ -67,6 +67,7 @@ namespace Library.Services
         {
             return new AuthorsDTO
             {
+                Id = author.Id,
                 Name = author.Name,
                 Bio = author.Bio,
                 BirthYear = author.BirthYear,
